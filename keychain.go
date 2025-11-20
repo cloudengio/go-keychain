@@ -216,21 +216,21 @@ type Accessible int
 
 const (
 	// AccessibleDefault is the default
-	AccessibleDefault Accessible = 0
+	AccessibleDefault Accessible = iota
 	// AccessibleWhenUnlocked is when unlocked
-	AccessibleWhenUnlocked = 1
+	AccessibleWhenUnlocked
 	// AccessibleAfterFirstUnlock is after first unlock
-	AccessibleAfterFirstUnlock = 2
+	AccessibleAfterFirstUnlock
 	// AccessibleAlways is always
-	AccessibleAlways = 3
+	AccessibleAlways
 	// AccessibleWhenPasscodeSetThisDeviceOnly is when passcode is set
-	AccessibleWhenPasscodeSetThisDeviceOnly = 4
+	AccessibleWhenPasscodeSetThisDeviceOnly
 	// AccessibleWhenUnlockedThisDeviceOnly is when unlocked for this device only
-	AccessibleWhenUnlockedThisDeviceOnly = 5
+	AccessibleWhenUnlockedThisDeviceOnly
 	// AccessibleAfterFirstUnlockThisDeviceOnly is after first unlock for this device only
-	AccessibleAfterFirstUnlockThisDeviceOnly = 6
+	AccessibleAfterFirstUnlockThisDeviceOnly
 	// AccessibleAccessibleAlwaysThisDeviceOnly is always for this device only
-	AccessibleAccessibleAlwaysThisDeviceOnly = 7
+	AccessibleAccessibleAlwaysThisDeviceOnly
 )
 
 // MatchLimit is whether to limit results on query
