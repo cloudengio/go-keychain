@@ -186,7 +186,11 @@ var (
 	// ModificationDateKey is for kSecAttrModificationDate
 	ModificationDateKey = attrKey(C.CFTypeRef(C.kSecAttrModificationDate))
 
+	// DataProtectionKeyChainKey is for kSecUseDataProtectionKeychain
 	DataProtectionKeyChainKey = attrKey(C.CFTypeRef(C.kSecUseDataProtectionKeychain))
+
+	// UseKeychainKey is for kSecUseKeychain
+	UseKeychainKey = attrKey(C.CFTypeRef(C.kSecUseKeychain))
 )
 
 // Synchronizable is the items synchronizable status
@@ -370,6 +374,15 @@ func (k *Item) SetDataProtectionKeyChain(value bool) {
 		k.attr[DataProtectionKeyChainKey] = true
 	} else {
 		delete(k.attr, DataProtectionKeyChainKey)
+	}
+}
+
+// SetUseKeychain sets the keychain to use for the item.
+func (k *Item) SetUseKeychain(keychainPath string) {
+	if keychainPath != "" {
+		k.attr[UseKeychainKey] = keychainPath
+	} else {
+		delete(k.attr, UseKeychainKey)
 	}
 }
 
