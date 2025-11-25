@@ -379,11 +379,7 @@ func (k *Item) SetDataProtectionKeyChain(value bool) {
 
 // SetUseKeychain sets the keychain to use for the item.
 func (k *Item) SetUseKeychain(keychainPath string) {
-	if keychainPath != "" {
-		k.attr[UseKeychainKey] = keychainPath
-	} else {
-		delete(k.attr, UseKeychainKey)
-	}
+	k.SetString(UseKeychainKey, keychainPath)
 }
 
 // SetAccessible sets the accessible attribute
