@@ -17,6 +17,7 @@ import "C"
 import (
 	"fmt"
 	"time"
+	"unsafe"
 )
 
 // Error defines keychain errors
@@ -670,4 +671,64 @@ func GetGenericPassword(service string, account string, label string, accessGrou
 		return results[0].Data, nil
 	}
 	return nil, nil
+}
+
+// Keychain represents a reference to a macOS keychain
+type Keychain struct {
+	ref C.SecKeychainRef
+}
+
+// OpenKeychain opens a keychain at the specified path
+func OpenKeychain(path string) (*Keychain, error) {
+	cPath := C.CString(path)
+	defer C.free(unsafe.Pointer(cPath))
+	
+	var keychainRef C.SecKeychainRef
+	status := C.SecKeychainOpen(cPath, &keychainRef)
+	
+	if status != C.errSecSuccess {
+		return nil, fmt.Errorf("failed to open keychain: %d", status)
+	}
+	
+	return &Keychain{ref: keychainRef}, nil
+}
+
+
+func PrintKeychainAccess() {
+	fmt.Printf("Keychain Access Information:\n")
+	var defaultKC C.SecKeychainRef
+	status := C.SecKeychainCopyDefault(&defaultKC)
+	if status == C.errSecSuccess {
+    	var pathLen C.UInt32 = 1024
+	    path := make([]byte, pathLen)
+    	C.SecKeychainGetPath(defaultKC, &pathLen, (*C.char)(unsafe.Pointer(&path[0])))
+	    fmt.Printf("Security framework sees default: %s\n", string(path[:pathLen]))
+	    C.CFRelease(C.CFTypeRef(defaultKC))
+	}
+
+	// Also check the search list
+		var searchList C.CFArrayRef
+	status = C.SecKeychainCopySearchList(&searchList)
+	if status != C.errSecSuccess {
+		fmt.Printf("Failed to get search list: %d\n", status)
+		return
+	}
+	defer C.CFRelease(C.CFTypeRef(searchList))
+	
+	count := C.CFArrayGetCount(searchList)
+	fmt.Printf("Search list has %d keychains:\n", count)
+	
+	for i := C.CFIndex(0); i < count; i++ {
+		keychainRef := C.SecKeychainRef(C.CFArrayGetValueAtIndex(searchList, i))
+		
+		var pathLen C.UInt32 = 1024
+		path := make([]byte, pathLen)
+		
+		status := C.SecKeychainGetPath(keychainRef, &pathLen, (*C.char)(unsafe.Pointer(&path[0])))
+		if status == C.errSecSuccess {
+			fmt.Printf("  [%d] %s\n", i, string(path[:pathLen]))
+		} else {
+			fmt.Printf("  [%d] <failed to get path: %d>\n", i, status)
+		}
+	}
 }
