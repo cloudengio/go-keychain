@@ -16,6 +16,7 @@ package keychain
 import "C"
 import (
 	"fmt"
+	"os"
 	"time"
 	"unsafe"
 )
@@ -695,14 +696,14 @@ func OpenKeychain(path string) (*Keychain, error) {
 
 
 func PrintKeychainAccess() {
-	fmt.Printf("Keychain Access Information:\n")
+	fmt.Fprintf(os.Stderr,"Keychain Access Information:\n")
 	var defaultKC C.SecKeychainRef
 	status := C.SecKeychainCopyDefault(&defaultKC)
 	if status == C.errSecSuccess {
     	var pathLen C.UInt32 = 1024
 	    path := make([]byte, pathLen)
     	C.SecKeychainGetPath(defaultKC, &pathLen, (*C.char)(unsafe.Pointer(&path[0])))
-	    fmt.Printf("Security framework sees default: %s\n", string(path[:pathLen]))
+	    fmt.Fprintf(os.Stderr,"Security framework sees default: %s\n", string(path[:pathLen]))
 	    C.CFRelease(C.CFTypeRef(defaultKC))
 	}
 
@@ -710,13 +711,13 @@ func PrintKeychainAccess() {
 		var searchList C.CFArrayRef
 	status = C.SecKeychainCopySearchList(&searchList)
 	if status != C.errSecSuccess {
-		fmt.Printf("Failed to get search list: %d\n", status)
+		fmt.Fprintf(os.Stderr,"Failed to get search list: %d\n", status)
 		return
 	}
 	defer C.CFRelease(C.CFTypeRef(searchList))
 	
 	count := C.CFArrayGetCount(searchList)
-	fmt.Printf("Search list has %d keychains:\n", count)
+	fmt.Fprintf(os.Stderr,"Search list has %d keychains:\n", count)
 	
 	for i := C.CFIndex(0); i < count; i++ {
 		keychainRef := C.SecKeychainRef(C.CFArrayGetValueAtIndex(searchList, i))
@@ -726,9 +727,9 @@ func PrintKeychainAccess() {
 		
 		status := C.SecKeychainGetPath(keychainRef, &pathLen, (*C.char)(unsafe.Pointer(&path[0])))
 		if status == C.errSecSuccess {
-			fmt.Printf("  [%d] %s\n", i, string(path[:pathLen]))
+			fmt.Fprintf(os.Stderr,"  [%d] %s\n", i, string(path[:pathLen]))
 		} else {
-			fmt.Printf("  [%d] <failed to get path: %d>\n", i, status)
+			fmt.Fprintf(os.Stderr,"  [%d] <failed to get path: %d>\n", i, status)
 		}
 	}
 }
