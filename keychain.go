@@ -14,6 +14,7 @@ package keychain
 #include <Security/Security.h>
 */
 import "C"
+
 import (
 	"fmt"
 	"time"
@@ -148,11 +149,13 @@ var (
 )
 
 // SecClassKey is the key type for SecClass
-var SecClassKey = attrKey(C.CFTypeRef(C.kSecClass))
-var secClassTypeRef = map[SecClass]C.CFTypeRef{
-	SecClassGenericPassword:  C.CFTypeRef(C.kSecClassGenericPassword),
-	SecClassInternetPassword: C.CFTypeRef(C.kSecClassInternetPassword),
-}
+var (
+	SecClassKey     = attrKey(C.CFTypeRef(C.kSecClass))
+	secClassTypeRef = map[SecClass]C.CFTypeRef{
+		SecClassGenericPassword:  C.CFTypeRef(C.kSecClassGenericPassword),
+		SecClassInternetPassword: C.CFTypeRef(C.kSecClassInternetPassword),
+	}
+)
 
 var (
 	// ServiceKey is for kSecAttrService
@@ -204,12 +207,14 @@ const (
 )
 
 // SynchronizableKey is the key type for Synchronizable
-var SynchronizableKey = attrKey(C.CFTypeRef(C.kSecAttrSynchronizable))
-var syncTypeRef = map[Synchronizable]C.CFTypeRef{
-	SynchronizableAny: C.CFTypeRef(C.kSecAttrSynchronizableAny),
-	SynchronizableYes: C.CFTypeRef(C.kCFBooleanTrue),
-	SynchronizableNo:  C.CFTypeRef(C.kCFBooleanFalse),
-}
+var (
+	SynchronizableKey = attrKey(C.CFTypeRef(C.kSecAttrSynchronizable))
+	syncTypeRef       = map[Synchronizable]C.CFTypeRef{
+		SynchronizableAny: C.CFTypeRef(C.kSecAttrSynchronizableAny),
+		SynchronizableYes: C.CFTypeRef(C.kCFBooleanTrue),
+		SynchronizableNo:  C.CFTypeRef(C.kCFBooleanFalse),
+	}
+)
 
 // Accessible is the items accessibility
 type Accessible int
@@ -246,11 +251,13 @@ const (
 )
 
 // MatchLimitKey is key type for MatchLimit
-var MatchLimitKey = attrKey(C.CFTypeRef(C.kSecMatchLimit))
-var matchTypeRef = map[MatchLimit]C.CFTypeRef{
-	MatchLimitOne: C.CFTypeRef(C.kSecMatchLimitOne),
-	MatchLimitAll: C.CFTypeRef(C.kSecMatchLimitAll),
-}
+var (
+	MatchLimitKey = attrKey(C.CFTypeRef(C.kSecMatchLimit))
+	matchTypeRef  = map[MatchLimit]C.CFTypeRef{
+		MatchLimitOne: C.CFTypeRef(C.kSecMatchLimitOne),
+		MatchLimitAll: C.CFTypeRef(C.kSecMatchLimitAll),
+	}
+)
 
 // ReturnAttributesKey is key type for kSecReturnAttributes
 var ReturnAttributesKey = attrKey(C.CFTypeRef(C.kSecReturnAttributes))
@@ -562,8 +569,15 @@ func convertResult(d C.CFDictionaryRef) (*QueryResult, error) {
 		case AuthenticationTypeKey:
 			result.AuthenticationType = CFStringToString(C.CFStringRef(v))
 		case PortKey:
-			val := CFNumberToInterface(C.CFNumberRef(v))
-			result.Port = val.(int32)
+			val, err := CFNumberToInterface(C.CFNumberRef(v))
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert port number: %w", err)
+			}
+			port, ok := val.(int32)
+			if !ok {
+				return nil, fmt.Errorf("port value has unexpected type %T, expected int32", val)
+			}
+			result.Port = port
 		case PathKey:
 			result.Path = CFStringToString(C.CFStringRef(v))
 		case AccountKey:

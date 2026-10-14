@@ -1,9 +1,9 @@
 //go:build darwin || ios
-// +build darwin ios
 
 package bind
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -66,7 +66,7 @@ func GenericPasswordTest(t Test, service string, accessGroup string) {
 
 	// Test dupe
 	err = keychain.AddItem(item)
-	if err != keychain.ErrorDuplicateItem {
+	if !errors.Is(err, keychain.ErrorDuplicateItem) {
 		t.Fail("Should error with duplicate item")
 	}
 
@@ -177,7 +177,7 @@ func GenericPasswordTest(t Test, service string, accessGroup string) {
 
 	// Test remove not found
 	err = keychain.DeleteItem(item)
-	if err != keychain.ErrorItemNotFound {
+	if !errors.Is(err, keychain.ErrorItemNotFound) {
 		t.Fail("Error should be not found")
 	}
 }

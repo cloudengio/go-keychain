@@ -29,7 +29,7 @@ item.SetSynchronizable(keychain.SynchronizableNo)
 item.SetAccessible(keychain.AccessibleWhenUnlocked)
 err := keychain.AddItem(item)
 
-if err == keychain.ErrorDuplicateItem {
+if errors.Is(err, keychain.ErrorDuplicateItem) {
   // Duplicate
 }
 ```
@@ -98,7 +98,7 @@ item := keychain.NewGenericPassword("MyService", "gabriel", "A label", []byte("t
 item.SetSynchronizable(keychain.SynchronizableNo)
 item.SetAccessible(keychain.AccessibleWhenUnlocked)
 err := keychain.AddItem(item)
-if err == keychain.ErrorDuplicateItem {
+if errors.Is(err, keychain.ErrorDuplicateItem) {
   // Duplicate
 }
 
@@ -108,7 +108,7 @@ accounts, err := keychain.GetGenericPasswordAccounts("MyService")
 // Should have 1 account == "gabriel"
 
 err := keychain.DeleteGenericPasswordItem("MyService", "gabriel")
-if err == keychain.ErrorItemNotFound {
+if errors.Is(err, keychain.ErrorItemNotFound) {
   // Not found
 }
 ```

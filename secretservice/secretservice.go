@@ -263,7 +263,7 @@ func (s *SecretService) GetAttributes(item dbus.ObjectPath) (attributes Attribut
 
 // GetSecret
 func (s *SecretService) GetSecret(item dbus.ObjectPath, session Session) (secretPlaintext []byte, err error) {
-	var secretI []interface{}
+	var secretI []any
 	err = s.Obj(item).
 		Call("org.freedesktop.Secret.Item.GetSecret", NilFlags, session.Path).
 		Store(&secretI)
@@ -282,7 +282,7 @@ func (s *SecretService) GetSecret(item dbus.ObjectPath, session Session) (secret
 	case AuthenticationDHAES:
 		plaintext, err := unauthenticatedAESCBCDecrypt(secret.Parameters, secret.Value, session.AESKey)
 		if err != nil {
-			return nil, nil
+			return nil, err
 		}
 		secretPlaintext = plaintext
 	default:
@@ -337,6 +337,11 @@ type PromptDismissedError struct {
 // Error
 func (p PromptDismissedError) Error() string {
 	return p.err.Error()
+}
+
+// Unwrap
+func (p PromptDismissedError) Unwrap() error {
+	return p.err
 }
 
 // PromptAndWait is NOT thread-safe.

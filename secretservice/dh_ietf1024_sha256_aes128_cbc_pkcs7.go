@@ -119,9 +119,14 @@ func unauthenticatedAESCBCDecrypt(iv []byte, ciphertext []byte, key []byte) ([]b
 }
 
 func padPKCS7(xs []byte, n int) []byte {
+	// Validate block size to prevent integer overflow
+	if n < 1 || n > 255 {
+		panic("block size must be between 1 and 255")
+	}
+	//nolint:gosec // G115: Safe after bounds check on line 123
 	m := byte(n - (len(xs) % n))
 	if m == 0 {
-		m = 16
+		m = byte(n)
 	}
 	return append(xs, bytes.Repeat([]byte{m}, int(m))...)
 }
@@ -130,14 +135,17 @@ func unpadPKCS7(xs []byte, n int) ([]byte, error) {
 	if len(xs) == 0 {
 		return nil, fmt.Errorf("cannot unpad empty bytearray")
 	}
+	if n <= 0 || n > 255 {
+		return nil, fmt.Errorf("invalid block size %d", n)
+	}
 	if len(xs)%n != 0 {
 		return nil, fmt.Errorf("length of bytearray not a multiple of blocksize")
 	}
 	lastByte := xs[len(xs)-1]
-	padStartIdx := len(xs) - int(lastByte)
-	if padStartIdx < 0 {
-		return nil, fmt.Errorf("invalid pkcs7 padding; pad byte larger than number of characters")
+	if lastByte == 0 || int(lastByte) > n {
+		return nil, fmt.Errorf("invalid pkcs7 padding length %d", lastByte)
 	}
+	padStartIdx := len(xs) - int(lastByte)
 	for i := padStartIdx; i < len(xs); i++ {
 		if xs[i] != lastByte {
 			return nil, fmt.Errorf("expected pad character %x, got %x", lastByte, xs[i])
